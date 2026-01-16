@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小意神秘网站</title>
+    <script>
+        // 年龄验证（页面加载时执行）
+        let age = prompt("请输入你的年龄");
+        age = Number(age);
+        // 验证输入合法性
+        if (isNaN(age) || age < 0) {
+            alert("请输入有效的年龄数字！");
+            window.close() || location.reload();
+        } else if (age >= 18) {
+            alert("你已成年，欢迎进入！");
+        } else {
+            alert("你未成年，禁止进入！");
+            window.close() || location.reload();
+        }
+    </script>
+</head>
+<body style="text-align:center;margin:0;padding:30px;background:#f8f8f8;font-size:28px;">
+    <h1 style="margin:0 0 20px 0;">小意🤓</h1>
+    
+    <!-- 图片区域（已替换为这张动漫图，需确保anime.png与HTML同文件夹） -->
+    <img src="anime.png" style="width:90%;max-width:300px;border-radius:10px;margin-bottom:30px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+    
+    <!-- 视频区域 -->
+    <h2 style="color:#333;margin:30px 0 15px 0;font-size:30px;">视频播放 🎬</h2>
+    <video 
+        src="https://www.w3school.com.cn/i/movie.mp4"
+        controls 
+        style="width:90%;max-width:600px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.2);margin-bottom:20px;"
+    >
+        你的浏览器不支持视频播放，请更换浏览器后重试
+    </video>
+    <p style="color:#666;font-size:24px;margin:0 0 30px 0;">点击播放按钮开始观看～</p>
+    
+    <h3 style="margin:0;color:#555;">欢迎来到小意的网站 😍😋😍</h3>
+</body>
+</html>
