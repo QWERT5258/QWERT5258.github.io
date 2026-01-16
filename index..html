@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小意神秘网站</title>
+    <style>
+        /* 网站主体样式 */
+        body {
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            background: #f8f8f8;
+            font-size: 28px;
+            font-family: sans-serif;
+            position: relative;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        /* 悬浮音乐播放器样式 */
+        .float-player {
+            position: fixed;
+            bottom: 50px;
+            right: 20px;
+            width: 120px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.2);
+            padding: 15px;
+            text-align: center;
+            cursor: move;
+            z-index: 9999; /* 悬浮最上层，不遮挡网站内容 */
+            box-sizing: border-box;
+        }
+        .player-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: #3498db;
+            color: white;
+            font-size: 16px;
+            margin: 5px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto; /* 按钮可点击，不被拖动覆盖 */
+        }
+        .switch-btn {
+            background: #9b59b6;
+        }
+        .song-name {
+            font-size: 12px;
+            color: #333;
+            margin: 10px 0 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        /* 隐藏原生音频控件 */
+        audio {
+            display: none;
+        }
+        /* 网站内容样式 */
+        h1 {
+            margin: 0 0 20px 0;
+        }
+        img {
+            width: 90%;
+            max-width: 300px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #333;
+            margin: 30px 0 15px 0;
+            font-size: 30px;
+        }
+        video {
+            width: 90%;
+            max-width: 600px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        p {
+            color: #666;
+            font-size: 24px;
+            margin: 0 0 30px 0;
+        }
+        h3 {
+            margin: 0;
+            color: #555;
+        }
+        .content-wrapper {
+            padding: 30px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 网站主体内容 -->
+    <div class="content-wrapper">
+        <h1>小意🤓</h1>
+        
+        <!-- 图片区域（需确保anime.png与HTML同文件夹） -->
+        <img src="anime.png" alt="动漫图">
+        
+        <!-- 视频区域 -->
+        <h2>视频播放 🎬</h2>
+        <video 
+            src="https://www.w3school.com.cn/i/movie.mp4"
+            controls 
+        >
+            你的浏览器不支持视频播放，请更换浏览器后重试
+        </video>
+        <p>点击播放按钮开始观看～</p>
+        
+        <h3>欢迎来到小意的网站 😍😋😍</h3>
+    </div>
+
+    <!-- 悬浮音乐播放器 -->
+    <div class="float-player" id="floatPlayer">
+        <div class="song-name" id="currentSong">未播放</div>
+        <button class="player-btn" onclick="playPause()">▶️</button>
+        <button class="player-btn switch-btn" onclick="switchSong()">🔄</button>
+    </div>
+
+    <!-- 音频核心标签 -->
+    <audio id="audioPlayer" preload="metadata">
+        你的浏览器不支持音频播放，请更换浏览器
+    </audio>
+
+    <script>
+        // 1. 年龄验证逻辑（页面加载时执行，仅保留一次）
+        let age = prompt("请输入你的年龄");
+        age = Number(age);
+        if (isNaN(age) || age < 0) {
+            alert("请输入有效的年龄数字！");
+            window.close() || location.reload();
+        } else if (age >= 18) {
+            alert("你已成年，欢迎进入！");
+        } else {
+            alert("你未成年，禁止进入！");
+            window.close() || location.reload();
+        }
+
+        // 2. 悬浮音乐播放器逻辑
+        const songList = [
+            // 可播放的网络音频链接（无跨域限制）
+            { name: "小意 - 说散就散", url: "share_f661a26a486e51a33f4c935c24f3af191768599504522.mp3" },
+            { name: "纯音乐 - 治愈", url: "https://freesound.org/data/previews/654/654219_13600545-lq.mp3" },
+            // 本地歌曲添加格式：{name: "歌曲名", url: "本地文件名.mp3"}（需与HTML同文件夹）
+        ];
+
+        let currentIndex = 0;
+        const audio = document.getElementById("audioPlayer");
+        const player = document.getElementById("floatPlayer");
+        const songNameElem = document.getElementById("currentSong");
+        const playBtn = document.querySelector(".player-btn:not(.switch-btn)");
+        let isPlaying = false;
+        let isDragging = false;
+        let startX, startY, offsetX, offsetY;
+
+        // 初始化歌曲
+        function initSong(index) {
+            const song = songList[index];
+            audio.src = song.url;
+            songNameElem.textContent = song.name;
+            audio.onloadeddata = () => console.log("歌曲加载完成");
+            audio.onerror = () => alert("歌曲加载失败，请检查链接");
+        }
+        initSong(currentIndex);
+
+        // 播放/暂停切换
+        function playPause() {
+            if (isPlaying) {
+                audio.pause();
+                playBtn.textContent = "▶️";
+            } else {
+                audio.play().then(() => {
+                    playBtn.textContent = "⏸️";
+                }).catch(() => {
+                    alert("播放失败，请手动点击播放器按钮（浏览器限制）");
+                });
+            }
+            isPlaying = !isPlaying;
+        }
+
+        // 切换歌曲
+        function switchSong() {
+            currentIndex = (currentIndex + 1) % songList.length;
+            initSong(currentIndex);
+            if (isPlaying) audio.play();
+        }
+
+        // 播放完毕自动切歌
+        audio.onended = switchSong;
+
+        // 悬浮窗拖动（修复按钮点击冲突）
+        player.addEventListener("mousedown", (e) => {
+            if (e.target.tagName === "BUTTON") return;
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            offsetX = player.offsetLeft;
+            offsetY = player.offsetTop;
+            player.style.cursor = "grabbing";
+        });
+
+        document.addEventListener("mousemove", (e) => {
+            if (!isDragging) return;
+            const newX = offsetX + (e.clientX - startX);
+            const newY = offsetY + (e.clientY - startY);
+            const maxX = window.innerWidth - player.offsetWidth;
+            const maxY = window.innerHeight - player.offsetHeight;
+            player.style.left = `${Math.max(0, Math.min(newX, maxX))}px`;
+            player.style.top = `${Math.max(0, Math.min(newY, maxY))}px`;
+        });
+
+        document.addEventListener("mouseup", () => {
+            isDragging = false;
+            player.style.cursor = "move";
+        });
+
+        // 触摸设备支持（手机滑动）
+        player.addEventListener("touchstart", (e) => {
+            if (e.target.tagName === "BUTTON") return;
+            const touch = e.touches[0];
+            startX = touch.clientX;
+            startY = touch.clientY;
+            offsetX = player.offsetLeft;
+            offsetY = player.offsetTop;
+            isDragging = true;
+        });
+
+        document.addEventListener("touchmove", (e) => {
+            if (!isDragging) return;
+            const touch = e.touches[0];
+            const newX = offsetX + (touch.clientX - startX);
+            const newY = offsetY + (touch.clientY - startY);
+            const maxX = window.innerWidth - player.offsetWidth;
+            const maxY = window.innerHeight - player.offsetHeight;
+            player.style.left = `${Math.max(0, Math.min(newX, maxX))}px`;
+            player.style.top = `${Math.max(0, Math.min(newY, maxY))}px`;
+        });
+
+        document.addEventListener("touchend", () => {
+            isDragging = false;
+        });
+    </script>
+</body>
+</html> 
